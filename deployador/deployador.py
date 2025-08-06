@@ -4,7 +4,7 @@ import os
 import shutil
 import time
 from abc import ABC, abstractmethod
-from PySide6.QtWidgets import QPushButton, QVBoxLayout, QDialog, QDialogButtonBox, QComboBox, QProgressBar, QLabel
+from PySide6.QtWidgets import QPushButton, QVBoxLayout, QDialog, QDialogButtonBox, QComboBox, QProgressBar, QLabel, QLineEdit
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import QThread, Signal
 from base.herramienta import Herramienta, BotoneraPopUp, Popup
@@ -82,12 +82,20 @@ class Deployador(Herramienta):
     def getIcono(self):
         icono = QIcon(os.path.dirname(__file__) + "/../../config/iconos/link_url.svg")
         return icono
+    
+    def cambioEnCombo(self, text):
+        app = self.apps[text]
+        self.ruta_target.setText(app.ruta)
         
     def get_dialogo(self):
         self.nombre_proyecto_cb = QComboBox()
         aux2 = list(self.apps.keys())
         aux2.sort()
         self.nombre_proyecto_cb.addItems([''] + aux2)
+        self.nombre_proyecto_cb.currentTextChanged.connect(self.cambioEnCombo)
+        
+        ruta_target_label = QLabel('Ruta target')
+        self.ruta_target = QLineEdit()
         
         aceptar = QPushButton('Aceptar')
         aceptar.clicked.connect(self.aceptar)
@@ -100,6 +108,7 @@ class Deployador(Herramienta):
         
         layout = QVBoxLayout()
         layout.addWidget(self.nombre_proyecto_cb)
+        layout.addWidget(self.ruta_target)
         layout.addWidget(botonera)
         
         dialogo = QDialog()
@@ -109,7 +118,7 @@ class Deployador(Herramienta):
         dialogo.setWindowIcon(self.getIcono())
         return dialogo
 	
-    def copiar_carpeta_war(self, app):
+    def copiar_carpeta_war(self, app, ruta_nueva=None):
         directorio = self.contexto['wildfly_deployments'] if 'wildfly_deployments' in self.contexto else ""
         directorio_war = os.path.join(directorio, f'{app.nombre}.war')
         
@@ -120,7 +129,8 @@ class Deployador(Herramienta):
                 os.remove(directorio_war)
         
         destino = os.path.join(directorio, f'{app.nombre}.war')
-        origen = os.path.join(f'{app.ruta}', app.nombre)
+        ruta_aux = ruta_nueva if ruta_nueva else app.ruta
+        origen = os.path.join(f'{ruta_aux}', app.nombre)
         shutil.copytree(origen, destino)
     
     def a_dodeploy(self, app):
@@ -136,7 +146,7 @@ class Deployador(Herramienta):
     def deployar(self):
         try:
             aplicacion = self.nombre_proyecto_cb.currentText()
-            self.copiar_carpeta_war(self.apps[aplicacion])
+            self.copiar_carpeta_war(self.apps[aplicacion], self.ruta_target.text())
             self.a_dodeploy(self.apps[aplicacion])
             
             if 'barraEstado' in self.contexto and self.contexto['barraEstado']:
