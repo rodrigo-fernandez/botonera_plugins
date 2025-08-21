@@ -4,9 +4,9 @@ import os
 import shutil
 import time
 from abc import ABC, abstractmethod
-from PySide6.QtWidgets import QPushButton, QVBoxLayout, QDialog, QDialogButtonBox, QComboBox, QProgressBar, QLabel, QLineEdit
+from PySide6.QtWidgets import QPushButton, QVBoxLayout, QHBoxLayout, QDialog, QDialogButtonBox, QComboBox, QProgressBar, QLabel, QLineEdit
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Signal, Qt
 from base.herramienta import Herramienta, BotoneraPopUp, Popup
 
 
@@ -96,6 +96,14 @@ class Deployador(Herramienta):
         
         ruta_target_label = QLabel('Ruta target')
         self.ruta_target = QLineEdit()
+        self.abrir_ruta = QPushButton()
+        icono_abrir = QIcon(os.path.dirname(__file__) + "/../../config/iconos/folder.svg")
+        self.abrir_ruta.setIcon(icono_abrir)
+        self.abrir_ruta.clicked.connect(self.abrir)
+        
+        filaRuta = QHBoxLayout()
+        filaRuta.addWidget(self.ruta_target);
+        filaRuta.addWidget(self.abrir_ruta);
         
         aceptar = QPushButton('Aceptar')
         aceptar.clicked.connect(self.aceptar)
@@ -108,8 +116,10 @@ class Deployador(Herramienta):
         
         layout = QVBoxLayout()
         layout.addWidget(self.nombre_proyecto_cb)
-        layout.addWidget(self.ruta_target)
-        layout.addWidget(botonera)
+        #layout.addWidget(self.ruta_target)
+        #layout.addWidget(self.abrir_ruta)
+        layout.addLayout(filaRuta)
+        layout.addWidget(botonera, alignment=Qt.AlignHCenter)
         
         dialogo = QDialog()
         dialogo.setWindowTitle(self.etiqueta_plugin())
@@ -156,7 +166,17 @@ class Deployador(Herramienta):
             if 'barraEstado' in self.contexto and self.contexto['barraEstado']:
                 self.contexto['barraEstado'].setText(f"Error al deployar - {e}" )
             
-    
+    def abrir(self):
+        ruta = self.ruta_target.text()
+        if ruta and len(ruta) > 0:
+            comando = f'explorer /n,"{ruta}"'
+            print(comando)
+            os.system(comando)
+        else:
+            self.contexto['barraEstado'].setText(f"No hay ruta que abrir.")
+        
+        self.dialogo.close()
+        
     def aceptar(self):
         self.progressDialog = ProgressDialog(self)
         rta = self.progressDialog.exec()
