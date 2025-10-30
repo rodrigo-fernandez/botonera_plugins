@@ -128,20 +128,22 @@ class MultiplicarCadena(Manipulador):
 class CadenaAHtml(Manipulador):
     @classmethod
     def paresCaracteres(self):
-        rta = []
+        rta = {}
         
-        rta.append(('Á', '&#193;'))
-        rta.append(('É', '&#201;'))
-        rta.append(('Í', '&#205;'))
-        rta.append(('Ó', '&#211;'))
-        rta.append(('Ú', '&#218;'))
-        rta.append(('Ñ', '&#209;'))
-        rta.append(('á', '&#225;'))
-        rta.append(('é', '&#233;'))
-        rta.append(('í', '&#237;'))
-        rta.append(('ó', '&#243;'))
-        rta.append(('ú', '&#250;'))
-        rta.append(('ñ', '&#241;'))
+        rta['Á'] = '&Aacute;'
+        rta['É'] = '&Eacute;'
+        rta['Í'] = '&Iacute;'
+        rta['Ó'] = '&Oacute;'
+        rta['Ú'] = '&Uacute;'
+        rta['Ñ'] = '&Ntilde;'
+        rta['á'] = '&aacute;'
+        rta['é'] = '&eacute;'
+        rta['í'] = '&iacute;'
+        rta['ó'] = '&oacute;'
+        rta['ú'] = '&uacute;'
+        rta['ñ'] = '&ntilde;'
+        rta['<'] = '&lt;'
+        rta['>'] = '&gt;'
         
         return rta
     
@@ -151,10 +153,8 @@ class CadenaAHtml(Manipulador):
     
     @classmethod
     def manipular(self, entrada):
-        convertido = entrada
         
-        for par in self.paresCaracteres():
-            convertido = convertido.replace(par[0], par[1])
+        convertido = ''.join(self.paresCaracteres().get(caracter, caracter) for caracter in entrada)
         
         return convertido
 
